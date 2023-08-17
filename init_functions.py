@@ -1,38 +1,24 @@
-def initial_condition_w(x, t):
-    if x < 0.5:
-        y = 2
+import parameters as p
+
+
+def initial_function(a, b, s, x, t):
+    if x < s:
+        y = a
     else:
-        y = 1
+        y = b
     return y
 
 
-def initial_condition_theta(x, t):
-    if x < 0.3:
-        y = 1
-    else:
-        y = 0
-    return y
+# initial_parameters_functions
+s_velocity = 1
+s_velocity = s_velocity / p.velocity_scale
 
+s_theta = 3
+s_theta = s_theta / p.temperature_scale
 
-def initial_condition_qv(x, t):
-    if x < 0.5:
-        y = 1
-    else:
-        y = 2
-    return y
-
-
-def initial_condition_qr(x, t):
-    if x < 0.5:
-        y = 0.5
-    else:
-        y = 1.5
-    return y
-
-
-def initial_condition_qn(x, t):
-    if x < 0.5:
-        y = 2
-    else:
-        y = 3
-    return y
+s_qv = 28
+s_qv = s_qv / p.ratio_scale
+s_qr = 22
+s_qr = s_qr / p.ratio_scale
+s_qn = 26
+s_qn = s_qn / p.ratio_scale
