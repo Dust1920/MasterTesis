@@ -16,7 +16,7 @@ cp = 1e3
 cp = cp * temperature_scale
 lcp = heat_latence / cp
 
-q_star = 1000
+q_star = 1000000
 q_star = q_star / ratio_scale
 
 epsilon = 0.6
