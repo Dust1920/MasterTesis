@@ -46,7 +46,7 @@ Tiempo inicial y final
 """
 t_initial = 0
 t_initial = t_initial / p.time_scale
-t_final = 0.2
+t_final = 2
 t_final = t_final / p.time_scale
 
 cut_omega = 3
@@ -75,9 +75,10 @@ dt = cfl * dz / np.max(np.abs(workspace[:, 0]))
 
 basic_parameters = [p.g, workspace[0, 1], p.epsilon, p.B, workspace[0, 2]]
 vt_parameters = [p.vt0, p.vtnd, p.q_star]
-
+workspace_plots(workspace)
+s = workspace
 solution = at.resol_test(t_initial, t_final, cfl, dt, dz, -1, workspace, vt_parameters)
-# workspace_plots(solution)
+workspace_plots(solution)
 
-plt.plot(at.get_terminalvelocity(p.vt0, solution[:, 3], p.q_star))
+# plt.plot(at.get_terminalvelocity(p.vt0, solution[:, 3], p.q_star))
 plt.show()
