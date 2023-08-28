@@ -80,5 +80,7 @@ s = workspace
 solution = at.resol_test(t_initial, t_final, cfl, dt, dz, -1, workspace, vt_parameters)
 workspace_plots(solution)
 
+
+# Cambio de Prueba
 # plt.plot(at.get_terminalvelocity(p.vt0, solution[:, 3], p.q_star))
 plt.show()
