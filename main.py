@@ -46,7 +46,7 @@ Tiempo inicial y final
 """
 t_initial = 0
 t_initial = t_initial / p.time_scale
-t_final = 2
+t_final = 10
 t_final = t_final / p.time_scale
 
 cut_omega = 3
@@ -56,14 +56,16 @@ cut_qr = 3
 cut_qn = 3
 
 cut_omega = cut_omega / p.length_scale  # No olvidemos adimensionalizar
-cut_theta = cut_theta / p.length_scale
-cut_qv = cut_qv / p.length_scale
-cut_qr = cut_qr / p.length_scale
-cut_qn = cut_qn / p.length_scale
+cut_theta = cut_theta / p.temperature_scale
+cut_qv = cut_qv / p.ratio_scale
+cut_qr = cut_qr / p.ratio_scale
+cut_qn = cut_qn / p.ratio_scale
+
 
 # Workspace
+v0 = 1
 workspace = np.zeros((nz, 5))
-workspace[:, 0] = -1
+workspace[:, 0] = v0
 workspace[:, 1] = [start.heaviside(i - cut_theta) for i in space]
 workspace[:, 2] = [start.heaviside(i - cut_qv) for i in space]
 workspace[:, 3] = [start.heaviside(i - cut_qr) for i in space]
@@ -73,14 +75,17 @@ workspace[:, 4] = [start.heaviside(i - cut_qn) for i in space]
 cfl = 0.9
 dt = cfl * dz / np.max(np.abs(workspace[:, 0]))
 
-basic_parameters = [p.g, workspace[0, 1], p.epsilon, p.B, workspace[0, 2]]
+theta_0 = 300
+theta_0 = theta_0 / p.temperature_scale
+
+qv0 = 28
+qv0 = qv0 / p.ratio_scale
+
+basic_parameters = [p.g, theta_0, p.epsilon, p.B, qv0]
 vt_parameters = [p.vt0, p.vtnd, p.q_star]
-workspace_plots(workspace)
-s = workspace
-solution = at.resol_test(t_initial, t_final, cfl, dt, dz, -1, workspace, vt_parameters)
-workspace_plots(solution)
 
+# workspace_plots(workspace)
+result = at.resol_test(t_initial, t_final, cfl, dt, dz, workspace, vt_parameters, v0)
+workspace_plots(result)
 
-# Cambio de Prueba
-# plt.plot(at.get_terminalvelocity(p.vt0, solution[:, 3], p.q_star))
 plt.show()

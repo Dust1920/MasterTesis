@@ -1,5 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plt
+
 
 def approxfqv(z, c):
     # Dr.Gerardo Hernandez Dueñas
@@ -84,7 +84,7 @@ def one_sided_model(dspace, dtime, u, z_vector, vpar, tau_w, vpar2):
     return aux
 
 
-def one_sided_v5(dt, dz, u, v0, vpar2):
+def one_sided_v5(dt, dz, u, vpar2, v0):
     m = np.shape(u)[0]
     aux = np.zeros((m, 5))
     dzt = dt / dz
@@ -122,10 +122,60 @@ def one_sided_v5(dt, dz, u, v0, vpar2):
     return aux
 
 
-def resol_test(t_0, t_f, cfl, dt, dz, v_test, workspace, q_parameters):
+def one_sided_v6(dt, dz, u, vpar2, v0):
+    m = np.shape(u)[0]
+    aux = np.zeros((m, 5))
+    dzt = dt / dz
+    vt0 = vpar2[0]
+    vtnd = vpar2[1]
+    q_star = vpar2[2]
+    vel = u[:, 0]
+    tem = u[:, 1]
+    qv = u[:, 2]
+    qr = u[:, 3]
+    qn = u[:, 4]
+
+    cflvt = np.zeros(m)
+    cflvn = np.zeros(m)
+
+    for i in range(1, m - 1):
+        if v0 < 0:
+            aux[i, 0] = v0
+            aux[i, 1] = tem[i] - dzt * v0 * (tem[i + 1] - tem[i])
+            aux[i, 2] = qv[i] - dzt * v0 * (qv[i + 1] - qv[i])
+            aux[i, 3] = (qr[i] - dzt *
+                         ((v0 - get_terminalvelocity(vt0, qr[i + 1], q_star)) * qr[i + 1] - (
+                                 v0 - get_terminalvelocity(vt0, qr[i], q_star)) * qr[i]))
+            aux[i, 4] = (qn[i] - dzt *
+                         ((v0 - get_aerosolvelocity(vtnd, vt0, qr[i + 1], q_star)) * qn[i + 1] - (
+                                 v0 - get_aerosolvelocity(vtnd, vt0, qr[i], q_star)) * qn[i]))
+            cflvt[i] = aux[i, 0] - get_terminalvelocity(vt0, qr[i], q_star)
+            cflvn[i] = aux[i, 0] - get_aerosolvelocity(vtnd, vt0, qr[i], q_star)
+        else:
+            aux[i, 0] = v0
+            aux[i, 1] = tem[i] - dzt * v0 * (tem[i] - tem[i - 1])
+            aux[i, 2] = qv[i] - dzt * v0 * (qv[i] - qv[i - 1])
+            aux[i, 3] = (qr[i] - dzt *
+                         ((v0 - get_terminalvelocity(vt0, qr[i], q_star)) * qr[i] - (
+                                 v0 - get_terminalvelocity(vt0, qr[i - 1], q_star)) * qr[i - 1]))
+            aux[i, 4] = (qn[i] - dzt *
+                         ((v0 - get_aerosolvelocity(vtnd, vt0, qr[i], q_star)) * qn[i] - (
+                                 v0 - get_aerosolvelocity(vtnd, vt0, qr[i - 1], q_star)) * qn[i - 1]))
+            cflvt[i] = aux[i, 0] - get_terminalvelocity(vt0, qr[i], q_star)
+            cflvn[i] = aux[i, 0] - get_aerosolvelocity(vtnd, vt0, qr[i], q_star)
+        aux[0, :] = aux[1, :]  # Antes de cambiarlo, funciona.
+        aux[-1, :] = aux[-2, :]
+    pt = np.max(np.abs(cflvt))
+    pn = np.max(np.abs(cflvn))
+    p0 = np.max(np.abs(aux[:, 0]))
+    p = np.max([pn, pt, p0])
+    return aux, p
+
+
+def resol_test(t_0, t_f, cfl, dt, dz, workspace, q_parameters, v0):
     while t_0 < t_f:
-        workspace = one_sided_v5(dt, dz, workspace, v_test, q_parameters)
-        dt = cfl * dz
+        q = one_sided_v6(dt, dz, workspace, q_parameters, v0)
+        workspace = q[0]
+        dt = cfl * dz / q[1]
         t_0 += dt
-    # workspace_plots(workspace)
-    return(workspace)
+    return workspace
