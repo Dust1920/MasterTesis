@@ -41,11 +41,13 @@ def get_evaporation(qr, tau_e, q_star, qv, qvs0, z):
 
 def get_terminalvelocity(vt0, qr, q_star):
     vt = vt0 * qr / q_star
+    # vt = 0
     return vt
 
 
 def get_aerosolvelocity(vtnd, vt0, qr, q_star):
     vtn = vtnd + np.min([qr / q_star, 1]) * np.max([get_terminalvelocity(vt0, qr, q_star) - vtnd, 0])
+    vtn = 0
     return vtn
 
 
@@ -122,7 +124,7 @@ def one_sided_v5(dt, dz, u, vpar2, v0):
     return aux
 
 
-def one_sided_v6(dt, dz, u, vpar2, v0):
+def one_sided_v6(dt, dz, u, vpar2, w):
     m = np.shape(u)[0]
     aux = np.zeros((m, 5))
     dzt = dt / dz
@@ -139,32 +141,34 @@ def one_sided_v6(dt, dz, u, vpar2, v0):
     cflvn = np.zeros(m)
 
     for i in range(1, m - 1):
-        if v0 < 0:
-            aux[i, 0] = v0
-            aux[i, 1] = tem[i] - dzt * v0 * (tem[i + 1] - tem[i])
-            aux[i, 2] = qv[i] - dzt * v0 * (qv[i + 1] - qv[i])
-            aux[i, 3] = (qr[i] - dzt *
-                         ((v0 - get_terminalvelocity(vt0, qr[i + 1], q_star)) * qr[i + 1] - (
-                                 v0 - get_terminalvelocity(vt0, qr[i], q_star)) * qr[i]))
-            aux[i, 4] = (qn[i] - dzt *
-                         ((v0 - get_aerosolvelocity(vtnd, vt0, qr[i + 1], q_star)) * qn[i + 1] - (
-                                 v0 - get_aerosolvelocity(vtnd, vt0, qr[i], q_star)) * qn[i]))
-            cflvt[i] = aux[i, 0] - get_terminalvelocity(vt0, qr[i], q_star)
-            cflvn[i] = aux[i, 0] - get_aerosolvelocity(vtnd, vt0, qr[i], q_star)
+        cflvt[i] = w - get_terminalvelocity(vt0, qr[i], q_star)
+        cflvn[i] = w - get_aerosolvelocity(vtnd, vt0, qr[i], q_star)
+
+        if w < 0:
+            aux[i, 0] = w
+            aux[i, 1] = tem[i] - dzt * w * (tem[i + 1] - tem[i])
+            aux[i, 2] = qv[i] - dzt * w * (qv[i + 1] - qv[i])
         else:
-            aux[i, 0] = v0
-            aux[i, 1] = tem[i] - dzt * v0 * (tem[i] - tem[i - 1])
-            aux[i, 2] = qv[i] - dzt * v0 * (qv[i] - qv[i - 1])
-            aux[i, 3] = (qr[i] - dzt *
-                         ((v0 - get_terminalvelocity(vt0, qr[i], q_star)) * qr[i] - (
-                                 v0 - get_terminalvelocity(vt0, qr[i - 1], q_star)) * qr[i - 1]))
+            aux[i, 0] = w
+            aux[i, 1] = tem[i] - dzt * w * (tem[i] - tem[i - 1])
+            aux[i, 2] = qv[i] - dzt * w * (qv[i] - qv[i - 1])
+        if cflvt[i] < 0:
+            aux[i, 3] = qr[i] - dzt * ((w - get_terminalvelocity(vt0, qr[i + 1], q_star)) * qr[i + 1]
+                                       - (cflvt[i] * qr[i]))
+        else:
+            aux[i, 3] = qr[i] - dzt * ((w - get_terminalvelocity(vt0, qr[i], q_star)) * qr[i] -
+                                       (w - get_terminalvelocity(vt0, qr[i - 1], q_star)) * qr[i - 1])
+        if cflvn[i] < 0:
             aux[i, 4] = (qn[i] - dzt *
-                         ((v0 - get_aerosolvelocity(vtnd, vt0, qr[i], q_star)) * qn[i] - (
-                                 v0 - get_aerosolvelocity(vtnd, vt0, qr[i - 1], q_star)) * qn[i - 1]))
-            cflvt[i] = aux[i, 0] - get_terminalvelocity(vt0, qr[i], q_star)
-            cflvn[i] = aux[i, 0] - get_aerosolvelocity(vtnd, vt0, qr[i], q_star)
+                         ((w - get_aerosolvelocity(vtnd, vt0, qr[i + 1], q_star)) * qn[i + 1] - (
+                                 w - get_aerosolvelocity(vtnd, vt0, qr[i], q_star)) * qn[i]))
+        else:
+            aux[i, 4] = (qn[i] - dzt *
+                         ((w - get_aerosolvelocity(vtnd, vt0, qr[i], q_star)) * qn[i] - (
+                                 w - get_aerosolvelocity(vtnd, vt0, qr[i - 1], q_star)) * qn[i - 1]))
         aux[0, :] = aux[1, :]  # Antes de cambiarlo, funciona.
         aux[-1, :] = aux[-2, :]
+        # print(get_terminalvelocity(vt0, aux[i, 3], q_star))
     pt = np.max(np.abs(cflvt))
     pn = np.max(np.abs(cflvn))
     p0 = np.max(np.abs(aux[:, 0]))
@@ -172,10 +176,17 @@ def one_sided_v6(dt, dz, u, vpar2, v0):
     return aux, p
 
 
-def resol_test(t_0, t_f, cfl, dt, dz, workspace, q_parameters, v0):
+def resol_test(t_0, t_f, cfl, dt, dz, workspace, q_parameters, v0, tick):
+    tick_time = 0
     while t_0 < t_f:
         q = one_sided_v6(dt, dz, workspace, q_parameters, v0)
         workspace = q[0]
-        dt = cfl * dz / q[1]
+        dt = cfl * dz / np.abs(q[1])
+        print("cfl = ", dt / dz * q[1])
+        tick_time += 1
+        if tick_time == tick:
+            # print(workspace)
+            break
         t_0 += dt
+        # print(q[1])
     return workspace

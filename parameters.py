@@ -4,7 +4,7 @@ import numpy as np
 length_scale = 10  # Km
 temperature_scale = 3  # K
 time_scale = 15  # min
-ratio_scale = 1000  # g/Kg Qs
+ratio_scale = 10  # g/Kg Qs
 velocity_scale = (length_scale * 1000) / (time_scale * 60)
 
 # Parametros
@@ -16,7 +16,7 @@ cp = 1e3
 cp = cp * temperature_scale
 lcp = heat_latence / cp
 
-q_star = 1000000
+q_star = 10
 q_star = q_star / ratio_scale
 
 epsilon = 0.6
