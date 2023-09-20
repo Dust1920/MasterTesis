@@ -46,7 +46,7 @@ Tiempo inicial y final
 """
 t_initial = 0
 t_initial = t_initial / p.time_scale
-t_final = 10
+t_final = 3  # min
 t_final = t_final / p.time_scale
 
 cut_omega = 8  # Km
@@ -86,13 +86,16 @@ theta_0 = theta_0 / p.temperature_scale
 qv0 = 28
 qv0 = qv0 / p.ratio_scale
 
-basic_parameters = [p.g, workspace[0, 1], p.epsilon, p.B, workspace[0, 2]]
+basic_parameters = [p.g, theta_0, p.epsilon, p.B, qv0]
 vt_parameters = [p.vt0, p.vtnd, p.q_star]
 # workspace_plots(workspace)
 
 # workspace_plots(workspace)
-result = at.resol_test(t_initial, t_final, cfl, dt, dz, workspace, vt_parameters, w0, tick=-1)
+result = at.resol_test(t_initial, t_final, cfl, dt, dz, workspace, vt_parameters, -1, basic_parameters, space, p.tau_w)
 workspace_plots(result)
 
-plt.plot(at.get_terminalvelocity(p.vt0, result[:, 3], p.q_star))
+# plt.plot(at.get_terminalvelocity(p.vt0, result[:, 3], p.q_star))
+
+# b = [at.get_bouyancyforce(basic_parameters, i, 1, 1, 1) for i in space]
+# plt.plot(b, space)
 plt.show()

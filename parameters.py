@@ -7,7 +7,7 @@ time_scale = 15  # min
 ratio_scale = 10  # g/Kg Qs
 velocity_scale = (length_scale * 1000) / (time_scale * 60)
 
-# Parametros
+# Parametros  iuhoihoioo
 B = 3  # K / km
 B = B * length_scale / temperature_scale
 
