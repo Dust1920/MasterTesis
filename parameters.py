@@ -7,15 +7,14 @@ time_scale = 15  # min
 ratio_scale = 10  # g/Kg Qs
 velocity_scale = (length_scale * 1000) / (time_scale * 60)
 
-# Parametros  iuhoihoioo
+# Parametros
 B = 3  # K / km
 B = B * length_scale / temperature_scale
 
-heat_latence = 2.5e6
-cp = 1e3
+heat_latence = 2.5e6  # J/Kg
+cp = 1e3  # J/(Kg * K)
 cp = cp * temperature_scale
 lcp = heat_latence / cp
-
 q_star = 10
 q_star = q_star / ratio_scale
 
@@ -25,7 +24,10 @@ tau_w = 7.5  # min
 tau_w = tau_w / time_scale
 
 g = 9.81  # m/s^2
-g = g / velocity_scale * 60 * time_scale
+g = g / velocity_scale * (60 * time_scale)
+
+print(g)
+
 
 b_w = 0.491  # m/s sqrt(s)
 b_w = b_w / (length_scale * 1000) * (time_scale * 60) * np.sqrt(time_scale * 60)

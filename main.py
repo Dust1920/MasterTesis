@@ -46,7 +46,7 @@ Tiempo inicial y final
 """
 t_initial = 0
 t_initial = t_initial / p.time_scale
-t_final = 3  # min
+t_final = 15  # min
 t_final = t_final / p.time_scale
 
 cut_omega = 8  # Km
@@ -61,13 +61,21 @@ cut_qv = cut_qv / p.length_scale
 cut_qr = cut_qr / p.length_scale
 cut_qn = cut_qn / p.length_scale
 
+theta_0 = 300
+theta_0 = theta_0 / p.temperature_scale
+
+qv0 = 28
+qv0 = qv0 / p.ratio_scale
+
+basic_parameters = [p.g, theta_0, p.epsilon, p.B, qv0]
+vt_parameters = [p.vt0, p.vtnd, p.q_star]
 
 # Workspace
 w0 = -1
 w0 = w0 / p.velocity_scale
 workspace = np.zeros((nz, 5))
 workspace[:, 0] = w0
-workspace[:, 1] = [start.heaviside(z - cut_theta) for z in space]
+workspace[:, 1] = [start.heaviside(z - cut_theta) + theta_0 + p.B * z for z in space]
 workspace[:, 2] = [start.heaviside(z - cut_qv) for z in space]
 workspace[:, 3] = [start.heaviside(z - cut_qr) for z in space]
 workspace[:, 4] = [start.heaviside(z - cut_qn) for z in space]
@@ -80,15 +88,7 @@ vtnst = np.array([at.get_aerosolvelocity(p.vtnd, p.vt0, i, p.q_star) for i in wo
 cfl = 0.45
 dt = cfl * dz / np.max([np.abs(workspace[:, 0]), np.abs(vtst), np.abs(vtnst)])
 
-theta_0 = 300
-theta_0 = theta_0 / p.temperature_scale
-
-qv0 = 28
-qv0 = qv0 / p.ratio_scale
-
-basic_parameters = [p.g, theta_0, p.epsilon, p.B, qv0]
-vt_parameters = [p.vt0, p.vtnd, p.q_star]
-# workspace_plots(workspace)
+workspace_plots(workspace)
 
 # workspace_plots(workspace)
 result = at.resol_test(t_initial, t_final, cfl, dt, dz, workspace, vt_parameters, -1, basic_parameters, space, p.tau_w)
@@ -96,6 +96,10 @@ workspace_plots(result)
 
 # plt.plot(at.get_terminalvelocity(p.vt0, result[:, 3], p.q_star))
 
-# b = [at.get_bouyancyforce(basic_parameters, i, 1, 1, 1) for i in space]
-# plt.plot(b, space)
+# b = np.array([at.get_bouyancyforce(basic_parameters, space[i], workspace[i, 1], workspace[i, 2], workspace[i, 3]) for i in range(len(space))])
+# plt.plot(b, space * p.length_scale)
+
+# qvs = np.array([at.approxfqv(i, qv0) for i in space])
+# plt.plot(qvs * p.ratio_scale, space * p.length_scale)
+
 plt.show()

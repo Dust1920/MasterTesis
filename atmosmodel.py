@@ -20,7 +20,7 @@ def get_bouyancyforce(par, z, theta, qv, qr):
     qv_0 = par[4]
     theta_hat = theta_0 + b0 * z
     qv_hat = approxfqv(z, qv_0)
-    b = g / theta_0 * (theta - theta_hat + epsilon * theta_0 * (qv - qv_hat) - theta_0 * qr)
+    b = g / theta_0 * ((theta - theta_hat) + epsilon * theta_0 * (qv - qv_hat) / 100 - theta_0 * qr / 100)
     return b
 
 
@@ -47,7 +47,6 @@ def get_terminalvelocity(vt0, qr, q_star):
 
 def get_aerosolvelocity(vtnd, vt0, qr, q_star):
     vtn = vtnd + np.min([qr / q_star, 1]) * np.max([get_terminalvelocity(vt0, qr, q_star) - vtnd, 0])
-    vtn = 0
     return vtn
 
 
@@ -219,7 +218,7 @@ def one_sided_v7(dt, dz, u, vpar1, vpar2, space, tau_w):
         else:
             aux[i, 4] = (qn[i] - dzt *
                          ((vel[i] - get_aerosolvelocity(vtnd, vt0, qr[i], q_star)) * qn[i] - (
-                                 vel[i] - get_aerosolvelocity(vtnd, vt0, qr[i - 1], q_star)) * qn[i - 1]))
+                                 vel[i - 1] - get_aerosolvelocity(vtnd, vt0, qr[i - 1], q_star)) * qn[i - 1]))
         aux[0, :] = aux[1, :]  # Antes de cambiarlo, funciona.
         aux[-1, :] = aux[-2, :]
         # print(get_terminalvelocity(vt0, aux[i, 3], q_star))
