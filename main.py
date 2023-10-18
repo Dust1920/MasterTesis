@@ -6,11 +6,23 @@ import init_functions as start  # Condiciones iniciales
 
 
 def system_plots(velocity, temperature, vapor, water, core):
-    wt_plots, ax = plt.subplots(1, 2)
-    qvrn_plots, axq = plt.subplots(2, 2)
+    wt_plots, ax = plt.subplots(1, 2, sharey = True)
+    qvrn_plots, axq = plt.subplots(2, 2, sharey = True)
     ax[0].plot(velocity * p.velocity_scale, space * p.length_scale)
     ax[1].plot(temperature * p.temperature_scale, space * p.length_scale)
+    ax[0].set_title('Velocidad')
+    ax[0].set_xlabel('ms^(-1)')
+    ax[1].set_title('Temperatura')
+    ax[1].set_xlabel('K')
     axq[0, 0].plot(velocity * p.velocity_scale, space * p.length_scale)
+    axq[0, 0].set_title('Velocidad')
+    axq[0, 0].set_xlabel('ms^(-1)')
+    axq[0, 1].set_title('QV')
+    axq[0, 1].set_xlabel('g(Kg)^(-1)')
+    axq[1, 0].set_title('QR')
+    axq[1, 0].set_xlabel('g(Kg)^(-1)')
+    axq[1, 1].set_title('QN')
+    axq[1, 1].set_xlabel('g(Kg)^(-1)')
     axq[0, 1].plot(vapor * p.ratio_scale, space * p.length_scale)
     axq[1, 0].plot(water * p.ratio_scale, space * p.length_scale)
     axq[1, 1].plot(core * p.ratio_scale, space * p.length_scale)
@@ -69,7 +81,7 @@ qv0 = qv0 / p.ratio_scale
 
 basic_parameters = [p.g, theta_0, p.epsilon, p.B, qv0]
 vt_parameters = [p.vt0, p.vtnd, p.q_star]
-
+cd_parameters  =[p.tau0,p.c0,p.gamma,p.taue,p.c]
 # Workspace
 w0 = -1
 w0 = w0 / p.velocity_scale
